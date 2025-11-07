@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_articles
+    description: "Staging table for raw news articles, cleaned and deduplicated."
+    columns:
+      - name: article_id
+        description: "The unique primary key for each article."
+        tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Article title"
+        tests:
+          - not_null
+      - name: url
+        description: "Article URL"
+      - name: published_at_ts
+        description: "Publication timestamp"
+      - name: source
+        description: "Source name"
+      - name: description
+        description: "Article description"
+      - name: content
+        description: "Article content"
+      - name: image_url
+        description: "Image URL"
+      - name: query_category
+        description: "Detected article category"
+        tests:
+          - not_null
+      - name: search_query
+        description: "Original search query used to find this article"
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              config:
+                severity: warn
+              arguments:
+                values: ['']  

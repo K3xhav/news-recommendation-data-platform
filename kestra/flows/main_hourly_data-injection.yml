@@ -1,0 +1,34 @@
+id: data-injection
+namespace: hourly
+
+inputs:
+  - id: GCS_BUCKET_NAME
+    type: STRING
+    defaults: "news-recommender-raw-data-tf-unique"
+
+tasks:
+  - id: fetchArticles
+    type: io.kestra.core.tasks.scripts.Python
+    runner: DOCKER
+    dockerOptions:
+      image: python:3.11-slim
+    inputFiles:
+      fetch_news.py: "{{ read('file:///app/scripts/fetch_news.py') }}"
+    env:
+      NEWS_API_KEY: "{{ secret('NEWS_API_KEY') }}"
+    commands:
+      - pip install requests urllib3
+      - python fetch_news.py
+    outputFiles:
+      - "news_articles.jsonl"
+
+  - id: uploadToGCS
+    type: io.kestra.plugin.gcp.gcs.Upload
+    serviceAccount: "{{ secret('GCP_SERVICE_ACCOUNT') }}"
+    from: "{{ outputs.fetchArticles.outputFiles['news_articles.jsonl'] }}"
+    to: "gs://{{ inputs.GCS_BUCKET_NAME }}/daily_news/{{ now() | date('yyyy-MM-dd') }}/news.jsonl"
+
+triggers:
+  - id: dailySchedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 8 * * *"

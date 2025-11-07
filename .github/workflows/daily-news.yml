@@ -1,0 +1,42 @@
+name: Daily News Pipeline
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: pip install requests urllib3
+        
+    - name: Run Kestra News Script
+      env:
+        NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+      run: |
+        cd kestra/scripts
+        python fetch_news.py
+        cd ../..
+        
+    - name: Setup Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        
+    - name: Upload to GCS
+      run: |
+        TODAY=$(date -u +%Y-%m-%d)
+        gcloud storage cp kestra/scripts/news_articles.jsonl gs://news-recommender-raw-data-tf-unique/daily_news/$TODAY/news.jsonl
+        
+    - name: Success
+      run: echo "✅ Done! News uploaded to GCS"
