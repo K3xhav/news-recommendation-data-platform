@@ -1,0 +1,27 @@
+# === secrets ===
+.env
+.env_encoded
+*credentials*.json
+service-account*.json
+
+# === Terraform ===
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.json
+
+# === jars ===
+*.jar
+*.jar.1
+*.jar.2
+
+
+# === api ===
+*.pyc
+__pycache__/
+
+# === dbt ===
+logs/
+target/
+dbt_packages/

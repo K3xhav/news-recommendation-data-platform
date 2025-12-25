@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: raw_news_data
+    database: news-recommendation-473806
+    schema: news_recommender_dw
+    tables:
+      - name: raw_articles
+        description: "Raw articles data loaded from the GCS bucket."
+        columns:
+          - name: title
+          - name: url
+            tests:
+              - not_null
+          - name: publishedAt
+          - name: source
+          - name: description
+          - name: content
+          - name: urlToImage
+          - name: query_category
+          - name: search_query  
+
+      - name: raw_clicks
+        description: "Raw user click events from the Spark job."
+        columns:
+          - name: user_id
+            tests:
+              - not_null
+          - name: article_id
+            tests:
+              - not_null
+          - name: click_timestamp

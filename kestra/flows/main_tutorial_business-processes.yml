@@ -1,0 +1,41 @@
+id: business-processes
+namespace: tutorial
+description: Business Processes
+
+inputs:
+  - id: request.name
+    type: STRING
+    defaults: Rick Astley
+
+  - id: request.start_date
+    type: DATE
+    defaults: 2024-07-01
+
+  - id: request.end_date
+    type: DATE
+    defaults: 2024-07-07
+
+  - id: slack_webhook_uri
+    type: URI
+    defaults: https://kestra.io/api/mock
+
+tasks:
+  - id: send_approval_request
+    type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
+    url: "{{ inputs.slack_webhook_uri }}"
+    payload: |
+      {
+        "channel": "#vacation",
+        "text": "Validate holiday request for {{ inputs.request.name }}. To approve the request, click on the `Resume` button here http://localhost:8080/ui/executions/{{flow.namespace}}/{{flow.id}}/{{execution.id}}"
+      }
+
+  - id: wait_for_approval
+    type: io.kestra.plugin.core.flow.Pause
+    pauseDuration: PT30S
+
+  - id: process_request
+    type: io.kestra.plugin.core.http.Request
+    uri: https://kestra.io/api/mock
+    method: POST
+    contentType: application/json
+    body: "{{ inputs.request }}"
